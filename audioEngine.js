@@ -689,15 +689,23 @@ class AudioEngine {
         volumeGainNode.connect(panNode);
         panNode.connect(track.gain);
         
+        // クリップの実際のAudioContext開始時刻を計算
+        let clipContextStartTime;
+        if (playbackStartTime === 0 && clipStartTime === 0) {
+            clipContextStartTime = this.audioContext.currentTime;
+        } else {
+            clipContextStartTime = contextStartTime + Math.max(0, clipStartTime - playbackStartTime);
+        }
+        
         // クリップゲインを適用（キーフレームまたは固定値）
         const baseClipGain = clip.gain ? Math.pow(10, clip.gain / 20) : 1.0;
-        this.applyKeyframeAutomation(clip, 'gain', clipGainNode.gain, contextStartTime, clipStartTime, baseClipGain);
+        this.applyKeyframeAutomation(clip, 'gain', clipGainNode.gain, clipContextStartTime, clipStartTime, baseClipGain);
         
         // ボリュームキーフレームを適用
-        this.applyKeyframeAutomation(clip, 'volume', volumeGainNode.gain, contextStartTime, clipStartTime, 1.0);
+        this.applyKeyframeAutomation(clip, 'volume', volumeGainNode.gain, clipContextStartTime, clipStartTime, 1.0);
         
         // パンキーフレームを適用
-        this.applyKeyframeAutomation(clip, 'pan', panNode.pan, contextStartTime, clipStartTime, 0);
+        this.applyKeyframeAutomation(clip, 'pan', panNode.pan, clipContextStartTime, clipStartTime, 0);
         
         // フェードイン
         if (clip.fadeIn > 0) {
