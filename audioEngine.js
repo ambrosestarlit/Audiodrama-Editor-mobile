@@ -758,6 +758,8 @@ class AudioEngine {
     applyKeyframeAutomation(clip, parameter, audioParam, contextStartTime, clipStartTime, defaultValue) {
         if (!window.keyframeManager) return;
         
+        console.log(`🔍 applyKeyframeAutomation: clipId=${clip.id}, parameter=${parameter}`);
+        
         const keyframes = window.keyframeManager.getParameterKeyframes(clip.id, parameter);
         
         console.log(`🐻 [${parameter}] キーフレーム数: ${keyframes.length}`, keyframes);
