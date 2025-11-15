@@ -1031,19 +1031,9 @@ class VoiceDramaDAW {
         let wasPlaying = false;
         
         const onMouseDown = (e) => {
-            // くまさん部分（::before擬似要素）のクリック判定
-            // くまさんは top:-20px, height:36px なので、
-            // クリック位置がplayhead.topより上にある場合のみドラッグ可能
+            // くまさん全体をクリック可能にする
+            // プレイヘッドの上側全体をドラッグ可能に
             const rect = playhead.getBoundingClientRect();
-            
-            // くまさんの範囲: rect.top - 20 から rect.top + 16
-            const bearTop = rect.top - 20;
-            const bearBottom = rect.top + 16;
-            
-            if (e.clientY < bearTop || e.clientY > bearBottom) {
-                console.log('⚠️ クリック位置がくまさんの範囲外');
-                return;
-            }
             
             console.log('✅ くまさんドラッグ開始');
             isDragging = true;
@@ -1257,12 +1247,14 @@ class VoiceDramaDAW {
                 const volumeValue = this.getKeyframeValueAtTime(clip.id, 'volume', localTime);
                 if (volumeValue !== null && clip.activeNodes.volumeGainNode) {
                     clip.activeNodes.volumeGainNode.gain.value = volumeValue / 100;
+                    console.log(`🔊 Volume applied: ${volumeValue} at ${localTime.toFixed(2)}s`);
                 }
                 
                 // Pan
                 const panValue = this.getKeyframeValueAtTime(clip.id, 'pan', localTime);
                 if (panValue !== null && clip.activeNodes.panNode) {
                     clip.activeNodes.panNode.pan.value = panValue;
+                    console.log(`🎚️ Pan applied: ${panValue} at ${localTime.toFixed(2)}s`);
                 }
                 
                 // Gain
@@ -1270,6 +1262,7 @@ class VoiceDramaDAW {
                 if (gainValue !== null && clip.activeNodes.clipGainNode) {
                     const gainLinear = Math.pow(10, gainValue / 20);
                     clip.activeNodes.clipGainNode.gain.value = gainLinear;
+                    console.log(`📢 Gain applied: ${gainValue}dB at ${localTime.toFixed(2)}s`);
                 }
             });
         });
