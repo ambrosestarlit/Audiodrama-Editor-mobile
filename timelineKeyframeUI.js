@@ -213,12 +213,20 @@ class TimelineKeyframeUI {
         if (volumeSlider && !volumeSlider.dataset.keyframeEnabled) {
             volumeSlider.dataset.keyframeEnabled = 'true';
             
+            // input: リアルタイム更新（履歴保存なし）
             volumeSlider.addEventListener('input', () => {
                 console.log(`📊 Volume slider input: selectedClip=${this.selectedClip?.id}, selectedTrackId=${this.selectedTrackId}, trackId=${trackId}`);
                 if (this.selectedClip && this.selectedTrackId === trackId) {
-                    this.recordKeyframe('volume', trackId);
+                    this.recordKeyframeLive('volume', trackId);
                 } else {
                     console.log(`  ⚠️ 条件不一致: selectedClip=${!!this.selectedClip}, trackIdMatch=${this.selectedTrackId === trackId}`);
+                }
+            });
+            
+            // change: スライダーを離したときに履歴保存
+            volumeSlider.addEventListener('change', () => {
+                if (window.app && window.app.saveHistory) {
+                    window.app.saveHistory();
                 }
             });
         }
@@ -228,12 +236,20 @@ class TimelineKeyframeUI {
         if (panSlider && !panSlider.dataset.keyframeEnabled) {
             panSlider.dataset.keyframeEnabled = 'true';
             
+            // input: リアルタイム更新（履歴保存なし）
             panSlider.addEventListener('input', () => {
                 console.log(`📊 Pan slider input: selectedClip=${this.selectedClip?.id}, selectedTrackId=${this.selectedTrackId}, trackId=${trackId}`);
                 if (this.selectedClip && this.selectedTrackId === trackId) {
-                    this.recordKeyframe('pan', trackId);
+                    this.recordKeyframeLive('pan', trackId);
                 } else {
                     console.log(`  ⚠️ 条件不一致: selectedClip=${!!this.selectedClip}, trackIdMatch=${this.selectedTrackId === trackId}`);
+                }
+            });
+            
+            // change: スライダーを離したときに履歴保存
+            panSlider.addEventListener('change', () => {
+                if (window.app && window.app.saveHistory) {
+                    window.app.saveHistory();
                 }
             });
         }
@@ -266,11 +282,14 @@ class TimelineKeyframeUI {
         
         console.log(`🎯 recordKeyframe: parameter=${parameter}, absoluteTime=${absoluteTime}, relativeTime=${relativeTime}`);
         
-        // クリップの範囲外なら何もしない
-        if (relativeTime < 0 || relativeTime > clip.duration) {
+        // クリップの範囲外なら何もしない（少し余裕を持たせる）
+        if (relativeTime < -0.1 || relativeTime > clip.duration + 0.1) {
             console.log(`  ⚠️ 範囲外!`);
             return;
         }
+        
+        // 範囲内に収める
+        const clampedTime = Math.max(0, Math.min(relativeTime, clip.duration));
         
         // 現在の値を取得
         let value;
@@ -295,7 +314,7 @@ class TimelineKeyframeUI {
         const nearest = window.keyframeManager.getNearestKeyframe(
             this.selectedClip.id, 
             parameter, 
-            relativeTime, 
+            clampedTime,  // clampedTimeを使用
             0.01  // 0.01秒以内のみ上書き
         );
         
@@ -310,7 +329,7 @@ class TimelineKeyframeUI {
             window.keyframeManager.addKeyframe(
                 this.selectedClip.id,
                 parameter,
-                relativeTime,
+                clampedTime,  // clampedTimeを使用
                 value,
                 'linear'
             );
@@ -323,6 +342,87 @@ class TimelineKeyframeUI {
         if (window.app && window.app.saveHistory) {
             window.app.saveHistory();
         }
+    }
+    
+    // キーフレーム記録（ライブ更新、履歴保存なし）
+    recordKeyframeLive(parameter, trackId) {
+        if (!this.selectedClip) return;
+        
+        const clip = window.trackManager.getTrack(trackId)?.clips
+            .find(c => c.id === this.selectedClip.id);
+        if (!clip) return;
+        
+        // 現在の時間を取得（プレイヘッドの位置から逆算）
+        let absoluteTime = window.audioEngine.currentTime;
+        
+        // もしcurrentTimeが0で、プレイヘッドが移動している場合は、プレイヘッドの位置から計算
+        if (absoluteTime === 0 || !this.isPlaying) {
+            const playhead = document.querySelector('.playhead');
+            if (playhead) {
+                const trackHeader = document.querySelector('.track-header');
+                const headerWidth = trackHeader ? trackHeader.offsetWidth : 240;
+                const playheadLeft = parseFloat(playhead.style.left) || headerWidth;
+                const offsetX = playheadLeft - headerWidth;
+                absoluteTime = offsetX / window.trackManager.pixelsPerSecond;
+            }
+        }
+        
+        const relativeTime = absoluteTime - clip.startTime;
+        
+        // クリップの範囲外なら何もしない（少し余裕を持たせる）
+        if (relativeTime < -0.1 || relativeTime > clip.duration + 0.1) {
+            return;
+        }
+        
+        // 範囲内に収める
+        const clampedTime = Math.max(0, Math.min(relativeTime, clip.duration));
+        
+        // 現在の値を取得
+        let value;
+        const trackElement = document.querySelector(`[data-track-id="${trackId}"]`);
+        
+        switch (parameter) {
+            case 'volume':
+                const volumeSlider = trackElement.querySelector('.volume-slider');
+                value = parseFloat(volumeSlider.value);
+                break;
+            case 'pan':
+                const panSlider = trackElement.querySelector('.pan-slider');
+                value = parseFloat(panSlider.value);
+                break;
+            case 'gain':
+                const gainSlider = document.getElementById('clipGainSlider');
+                value = gainSlider ? parseFloat(gainSlider.value) : 0;
+                break;
+        }
+        
+        // キーフレーム追加または更新（履歴保存なし）
+        const nearest = window.keyframeManager.getNearestKeyframe(
+            this.selectedClip.id, 
+            parameter, 
+            clampedTime,
+            0.01
+        );
+        
+        if (nearest) {
+            window.keyframeManager.updateKeyframe(
+                this.selectedClip.id,
+                parameter,
+                nearest.id,
+                { value }
+            );
+        } else {
+            window.keyframeManager.addKeyframe(
+                this.selectedClip.id,
+                parameter,
+                clampedTime,
+                value,
+                'linear'
+            );
+        }
+        
+        // 再描画（履歴保存なし）
+        this.renderKeyframesForClip(this.selectedClip.id, trackId);
     }
     
     disableKeyframeRecording() {

@@ -689,6 +689,14 @@ class AudioEngine {
         volumeGainNode.connect(panNode);
         panNode.connect(track.gain);
         
+        // リアルタイム更新用にノードへの参照を保存
+        clip.activeNodes = {
+            clipGainNode,
+            volumeGainNode,
+            panNode,
+            source
+        };
+        
         // クリップの実際のAudioContext開始時刻を計算
         let clipContextStartTime;
         if (playbackStartTime === 0 && clipStartTime === 0) {

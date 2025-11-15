@@ -966,6 +966,9 @@ class VoiceDramaDAW {
                     // キーフレームに合わせてスライダーを更新
                     this.updateSlidersFromKeyframes();
                     
+                    // キーフレーム値をAudio Nodeに適用
+                    this.applyKeyframesToAudioNodes();
+                    
                     // 終了チェック
                     if (window.audioEngine.currentTime >= window.audioEngine.duration) {
                         this.stop();
@@ -1234,6 +1237,42 @@ class VoiceDramaDAW {
         }
         
         return null;
+    }
+    
+    // キーフレーム値をAudio Nodeに適用
+    applyKeyframesToAudioNodes() {
+        const currentTime = window.audioEngine.currentTime;
+        
+        // 全トラックの全クリップをチェック
+        window.audioEngine.tracks.forEach(track => {
+            track.clips.forEach(clip => {
+                if (!clip.activeNodes) return;
+                
+                const localTime = currentTime - clip.startTime;
+                
+                // クリップの再生範囲内かチェック
+                if (localTime < 0 || localTime > clip.duration) return;
+                
+                // Volume
+                const volumeValue = this.getKeyframeValueAtTime(clip.id, 'volume', localTime);
+                if (volumeValue !== null && clip.activeNodes.volumeGainNode) {
+                    clip.activeNodes.volumeGainNode.gain.value = volumeValue / 100;
+                }
+                
+                // Pan
+                const panValue = this.getKeyframeValueAtTime(clip.id, 'pan', localTime);
+                if (panValue !== null && clip.activeNodes.panNode) {
+                    clip.activeNodes.panNode.pan.value = panValue;
+                }
+                
+                // Gain
+                const gainValue = this.getKeyframeValueAtTime(clip.id, 'gain', localTime);
+                if (gainValue !== null && clip.activeNodes.clipGainNode) {
+                    const gainLinear = Math.pow(10, gainValue / 20);
+                    clip.activeNodes.clipGainNode.gain.value = gainLinear;
+                }
+            });
+        });
     }
     
     // 履歴を保存
