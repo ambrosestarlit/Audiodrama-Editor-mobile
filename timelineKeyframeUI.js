@@ -246,11 +246,25 @@ class TimelineKeyframeUI {
             .find(c => c.id === this.selectedClip.id);
         if (!clip) return;
         
-        // 現在の再生時間からクリップ内の相対時間を計算
-        const absoluteTime = window.audioEngine.currentTime;
+        // 現在の時間を取得（プレイヘッドの位置から逆算）
+        let absoluteTime = window.audioEngine.currentTime;
+        
+        // もしcurrentTimeが0で、プレイヘッドが移動している場合は、プレイヘッドの位置から計算
+        if (absoluteTime === 0 || !this.isPlaying) {
+            const playhead = document.querySelector('.playhead');
+            if (playhead) {
+                const trackHeader = document.querySelector('.track-header');
+                const headerWidth = trackHeader ? trackHeader.offsetWidth : 240;
+                const playheadLeft = parseFloat(playhead.style.left) || headerWidth;
+                const offsetX = playheadLeft - headerWidth;
+                absoluteTime = offsetX / window.trackManager.pixelsPerSecond;
+                console.log(`🎯 一時停止中: プレイヘッド位置から計算 offsetX=${offsetX}, time=${absoluteTime}`);
+            }
+        }
+        
         const relativeTime = absoluteTime - clip.startTime;
         
-        console.log(`🎯 recordKeyframe: parameter=${parameter}, currentTime=${absoluteTime}, relativeTime=${relativeTime}`);
+        console.log(`🎯 recordKeyframe: parameter=${parameter}, absoluteTime=${absoluteTime}, relativeTime=${relativeTime}`);
         
         // クリップの範囲外なら何もしない
         if (relativeTime < 0 || relativeTime > clip.duration) {
@@ -304,6 +318,11 @@ class TimelineKeyframeUI {
         
         // 再描画
         this.renderKeyframesForClip(this.selectedClip.id, trackId);
+        
+        // 履歴保存（app.saveHistoryを呼ぶ）
+        if (window.app && window.app.saveHistory) {
+            window.app.saveHistory();
+        }
     }
     
     disableKeyframeRecording() {

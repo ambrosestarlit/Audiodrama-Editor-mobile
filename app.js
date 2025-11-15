@@ -7,6 +7,11 @@ class VoiceDramaDAW {
         this.isPlaying = false;
         this.animationId = null;
         this.pendingProject = null; // 素材ZIP読み込み待ちのプロジェクト
+        
+        // アンドゥ/リドゥ用の履歴
+        this.history = [];
+        this.historyIndex = -1;
+        this.isLoadingHistory = false; // 履歴復元中フラグ
     }
     
     // 初期化
@@ -22,7 +27,6 @@ class VoiceDramaDAW {
                 'effectsManager',
                 'exportManager',
                 'trackManager',
-                'historyManager',
                 'keyframeManager',
                 'timelineKeyframeUI'
             ];
@@ -79,6 +83,10 @@ class VoiceDramaDAW {
             console.log('Creating new project...');
             this.createNewProject();
             console.log('✓ New project created');
+            
+            // プレイヘッドを最初から作成
+            this.createPlayhead();
+            console.log('✓ Playhead created');
             
             console.log('✓ VoiceDrama DAW initialized successfully');
         } catch (error) {
@@ -193,11 +201,24 @@ class VoiceDramaDAW {
         
         // アンドゥ・リドゥ
         document.getElementById('undoBtn')?.addEventListener('click', () => {
-            window.historyManager.undo();
+            this.undo();
         });
         
         document.getElementById('redoBtn')?.addEventListener('click', () => {
-            window.historyManager.redo();
+            this.redo();
+        });
+        
+        // キーボードショートカット（Ctrl+Z / Ctrl+Y）
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'z' && !e.shiftKey) {
+                    e.preventDefault();
+                    this.undo();
+                } else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) {
+                    e.preventDefault();
+                    this.redo();
+                }
+            }
         });
         
         // トランスポートコントロール
@@ -313,6 +334,9 @@ class VoiceDramaDAW {
         if (window.trackManager) {
             window.trackManager.addTrack('メイントラック');
         }
+        
+        // 初期履歴を保存
+        this.saveHistory();
     }
     
     // プロジェクト保存
@@ -1192,6 +1216,94 @@ class VoiceDramaDAW {
         
         return null;
     }
+    
+    // 履歴を保存
+    saveHistory() {
+        if (this.isLoadingHistory) return; // 履歴復元中は保存しない
+        
+        // キーフレームデータを取得
+        const keyframesData = {};
+        if (window.keyframeManager && window.keyframeManager.keyframes) {
+            window.keyframeManager.keyframes.forEach((clipKeyframes, clipId) => {
+                keyframesData[clipId] = clipKeyframes;
+            });
+        }
+        
+        const state = JSON.stringify({
+            keyframes: keyframesData,
+            currentTime: window.audioEngine.currentTime
+        });
+        
+        // 現在位置より後の履歴を削除
+        this.history = this.history.slice(0, this.historyIndex + 1);
+        this.history.push(state);
+        this.historyIndex++;
+        
+        // 履歴が50を超えたら古いものを削除
+        if (this.history.length > 50) {
+            this.history.shift();
+            this.historyIndex--;
+        }
+        
+        console.log(`💾 History saved: index=${this.historyIndex}, total=${this.history.length}`);
+    }
+    
+    // アンドゥ
+    undo() {
+        if (this.historyIndex > 0) {
+            this.historyIndex--;
+            this.loadHistory();
+            console.log(`↩️ Undo: index=${this.historyIndex}`);
+        } else {
+            console.log(`↩️ Undo: 履歴の最初です`);
+        }
+    }
+    
+    // リドゥ
+    redo() {
+        if (this.historyIndex < this.history.length - 1) {
+            this.historyIndex++;
+            this.loadHistory();
+            console.log(`↪️ Redo: index=${this.historyIndex}`);
+        } else {
+            console.log(`↪️ Redo: 履歴の最後です`);
+        }
+    }
+    
+    // 履歴を復元
+    loadHistory() {
+        this.isLoadingHistory = true;
+        
+        const state = JSON.parse(this.history[this.historyIndex]);
+        
+        // キーフレームを復元
+        if (window.keyframeManager) {
+            window.keyframeManager.keyframes.clear();
+            
+            Object.keys(state.keyframes).forEach(clipId => {
+                const clipKeyframes = state.keyframes[clipId];
+                window.keyframeManager.keyframes.set(parseInt(clipId), clipKeyframes);
+            });
+            
+            // UIを更新
+            if (window.timelineKeyframeUI && window.timelineKeyframeUI.selectedClip) {
+                window.timelineKeyframeUI.renderKeyframesForClip(
+                    window.timelineKeyframeUI.selectedClip.id,
+                    window.timelineKeyframeUI.selectedTrackId
+                );
+            }
+        }
+        
+        // 現在時刻を復元
+        if (state.currentTime !== undefined) {
+            window.audioEngine.currentTime = state.currentTime;
+            this.updateTimeDisplay();
+            this.updatePlayhead();
+        }
+        
+        this.isLoadingHistory = false;
+        console.log(`📖 History loaded: keyframes=${Object.keys(state.keyframes).length} clips`);
+    }
 }
 
 // アプリケーション起動
@@ -1208,3 +1320,4 @@ if (document.readyState === 'loading') {
 
 // グローバルに公開
 window.voiceDramaDAW = app;
+window.app = app; // timelineKeyframeUI.jsから参照できるように
