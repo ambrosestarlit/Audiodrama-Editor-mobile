@@ -797,12 +797,14 @@ class AudioEngine {
             if (index === 0) {
                 // 最初のキーフレーム
                 audioParam.setValueAtTime(kf.value, time);
+                console.log(`  → setValueAtTime(${kf.value}, ${time})`);
             } else {
                 const prevKf = keyframes[index - 1];
                 
                 // 補間タイプに応じて適用
                 switch (prevKf.interpolation) {
                     case 'linear':
+                        console.log(`  → linearRampToValueAtTime(${kf.value}, ${time})`);
                         audioParam.linearRampToValueAtTime(kf.value, time);
                         break;
                     case 'step':
@@ -817,6 +819,7 @@ class AudioEngine {
                         this.approximateEasing(audioParam, prevKf, kf, time, contextStartTime);
                         break;
                     default:
+                        console.log(`  → linearRampToValueAtTime(${kf.value}, ${time}) [default]`);
                         audioParam.linearRampToValueAtTime(kf.value, time);
                 }
             }
