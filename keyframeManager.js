@@ -142,9 +142,21 @@ class KeyframeManager {
     
     // パラメータのキーフレームリストを取得
     getParameterKeyframes(clipId, parameter) {
+        console.log(`📍 getParameterKeyframes: clipId=${clipId}, parameter=${parameter}`);
+        console.log(`  keyframes Map size: ${this.keyframes.size}`);
+        console.log(`  keyframes Map:`, this.keyframes);
+        
         const clipKeyframes = this.keyframes.get(clipId);
-        if (!clipKeyframes) return [];
-        return clipKeyframes[parameter] || [];
+        console.log(`  clipKeyframes for clipId=${clipId}:`, clipKeyframes);
+        
+        if (!clipKeyframes) {
+            console.log(`  ⚠️ clipKeyframes not found!`);
+            return [];
+        }
+        
+        const result = clipKeyframes[parameter] || [];
+        console.log(`  result for parameter=${parameter}:`, result);
+        return result;
     }
     
     // クリップのキーフレームを全削除

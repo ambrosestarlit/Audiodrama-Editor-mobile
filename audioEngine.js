@@ -802,10 +802,14 @@ class AudioEngine {
                 console.log(`  → setValueAtTime(${kf.value}, ${time})`);
             } else {
                 const prevKf = keyframes[index - 1];
+                const prevTime = contextStartTime + prevKf.time;
                 
                 // 補間タイプに応じて適用
                 switch (prevKf.interpolation) {
                     case 'linear':
+                        // CRITICAL: linearRampToValueAtTimeの前に、必ず前の値をsetValueAtTime
+                        audioParam.setValueAtTime(prevKf.value, Math.max(minTime, prevTime));
+                        console.log(`  → setValueAtTime(${prevKf.value}, ${Math.max(minTime, prevTime)}) [before ramp]`);
                         console.log(`  → linearRampToValueAtTime(${kf.value}, ${time})`);
                         audioParam.linearRampToValueAtTime(kf.value, time);
                         break;
@@ -821,6 +825,9 @@ class AudioEngine {
                         this.approximateEasing(audioParam, prevKf, kf, time, contextStartTime);
                         break;
                     default:
+                        // CRITICAL: linearRampToValueAtTimeの前に、必ず前の値をsetValueAtTime
+                        audioParam.setValueAtTime(prevKf.value, Math.max(minTime, prevTime));
+                        console.log(`  → setValueAtTime(${prevKf.value}, ${Math.max(minTime, prevTime)}) [before ramp, default]`);
                         console.log(`  → linearRampToValueAtTime(${kf.value}, ${time}) [default]`);
                         audioParam.linearRampToValueAtTime(kf.value, time);
                 }
