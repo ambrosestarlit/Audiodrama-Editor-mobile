@@ -244,8 +244,13 @@ class TimelineKeyframeUI {
         const absoluteTime = window.audioEngine.currentTime;
         const relativeTime = absoluteTime - clip.startTime;
         
+        console.log(`🎯 recordKeyframe called: parameter=${parameter}, relativeTime=${relativeTime}, clipId=${clip.id}`);
+        
         // クリップの範囲外なら何もしない
-        if (relativeTime < 0 || relativeTime > clip.duration) return;
+        if (relativeTime < 0 || relativeTime > clip.duration) {
+            console.log(`  ⚠️ 範囲外! relativeTime=${relativeTime}, duration=${clip.duration}`);
+            return;
+        }
         
         // 現在の値を取得
         let value;
@@ -266,6 +271,8 @@ class TimelineKeyframeUI {
                 break;
         }
         
+        console.log(`  value=${value}`);
+        
         // キーフレーム追加または更新
         const nearest = window.keyframeManager.getNearestKeyframe(
             this.selectedClip.id, 
@@ -275,6 +282,7 @@ class TimelineKeyframeUI {
         );
         
         if (nearest) {
+            console.log(`  既存キーフレーム更新: id=${nearest.id}, time=${nearest.time}`);
             window.keyframeManager.updateKeyframe(
                 this.selectedClip.id,
                 parameter,
@@ -282,6 +290,7 @@ class TimelineKeyframeUI {
                 { value }
             );
         } else {
+            console.log(`  新規キーフレーム追加: time=${relativeTime}`);
             window.keyframeManager.addKeyframe(
                 this.selectedClip.id,
                 parameter,
@@ -290,6 +299,10 @@ class TimelineKeyframeUI {
                 'linear'
             );
         }
+        
+        // 確認
+        const allKeyframes = window.keyframeManager.getParameterKeyframes(this.selectedClip.id, parameter);
+        console.log(`  現在のキーフレーム数: ${allKeyframes.length}`, allKeyframes);
         
         // 再描画
         this.renderKeyframesForClip(this.selectedClip.id, trackId);
