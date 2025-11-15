@@ -697,6 +697,13 @@ class AudioEngine {
             clipContextStartTime = contextStartTime + Math.max(0, clipStartTime - playbackStartTime);
         }
         
+        console.log(`🐻🐻 Clip "${clip.file?.name || 'unknown'}":`);
+        console.log(`  - clipStartTime: ${clipStartTime}s`);
+        console.log(`  - playbackStartTime: ${playbackStartTime}s`);
+        console.log(`  - contextStartTime: ${contextStartTime}s`);
+        console.log(`  - clipContextStartTime: ${clipContextStartTime}s`);
+        console.log(`  - audioContext.currentTime: ${this.audioContext.currentTime}s`);
+        
         // クリップゲインを適用（キーフレームまたは固定値）
         const baseClipGain = clip.gain ? Math.pow(10, clip.gain / 20) : 1.0;
         this.applyKeyframeAutomation(clip, 'gain', clipGainNode.gain, clipContextStartTime, clipStartTime, baseClipGain);
