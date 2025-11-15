@@ -19,6 +19,88 @@ class TimelineKeyframeUI {
     setupGlobalEvents() {
         document.addEventListener('mousemove', (e) => this.onGlobalMouseMove(e));
         document.addEventListener('mouseup', () => this.onGlobalMouseUp());
+        
+        // くまさんキーフレームボタンのイベント設定
+        this.setupBearKeyframeButtons();
+    }
+    
+    setupBearKeyframeButtons() {
+        // エフェクトパネル内のくまさんボタンを取得
+        const bearButtons = document.querySelectorAll('.keyframe-bear-btn');
+        
+        bearButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const param = button.dataset.param;
+                if (!param) return;
+                
+                // エフェクトパラメーターのキーフレームを追加
+                this.recordEffectKeyframe(param);
+            });
+        });
+    }
+    
+    recordEffectKeyframe(elementId) {
+        if (!this.selectedClip || !this.selectedTrackId) {
+            alert('クリップを選択してください!');
+            return;
+        }
+        
+        const clip = window.trackManager.getTrack(this.selectedTrackId)?.clips
+            .find(c => c.id === this.selectedClip.id);
+        if (!clip) return;
+        
+        // 現在の再生時間からクリップ内の相対時間を計算
+        const absoluteTime = window.audioEngine.currentTime;
+        const relativeTime = absoluteTime - clip.startTime;
+        
+        // クリップの範囲外なら何もしない
+        if (relativeTime < 0 || relativeTime > clip.duration) {
+            alert('クリップの範囲内で実行してください!');
+            return;
+        }
+        
+        // 現在の値を取得
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        const value = parseFloat(element.value);
+        
+        // キーフレーム追加または更新
+        const nearest = window.keyframeManager.getNearestKeyframe(
+            this.selectedClip.id, 
+            elementId, 
+            relativeTime, 
+            0.1
+        );
+        
+        if (nearest) {
+            window.keyframeManager.updateKeyframe(
+                this.selectedClip.id,
+                elementId,
+                nearest.id,
+                { value }
+            );
+        } else {
+            window.keyframeManager.addKeyframe(
+                this.selectedClip.id,
+                elementId,
+                relativeTime,
+                value,
+                'linear'
+            );
+        }
+        
+        // 再描画
+        this.renderKeyframesForClip(this.selectedClip.id, this.selectedTrackId);
+        
+        // 視覚的フィードバック
+        const button = document.querySelector(`.keyframe-bear-btn[data-param="${elementId}"]`);
+        if (button) {
+            button.style.transform = 'scale(1.2)';
+            setTimeout(() => {
+                button.style.transform = '';
+            }, 200);
+        }
     }
     
     // クリップ選択時にキーフレーム自動記録を有効化
@@ -139,12 +221,35 @@ class TimelineKeyframeUI {
         const clipElement = document.querySelector(`.track-clip[data-clip-id="${clipId}"]`);
         if (!clipElement) return;
         
-        ['volume', 'pan', 'gain'].forEach((param, index) => {
+        // 基本パラメーター
+        const baseParams = ['volume', 'pan', 'gain'];
+        baseParams.forEach((param, index) => {
             const keyframes = window.keyframeManager.getParameterKeyframes(clipId, param);
             
             keyframes.forEach(kf => {
                 this.createKeyframeDiamond(clipElement, clip, kf, param, trackId, index);
             });
+        });
+        
+        // エフェクトパラメーター
+        const effectParams = [
+            'eqLow', 'eqMid', 'eqHigh',
+            'trackLimiterThreshold', 'trackLimiterRelease', 'trackLimiterRatio',
+            'trackExpanderThreshold', 'trackExpanderRatio', 'trackExpanderRelease',
+            'trackHighpassCutoff', 'trackHighpassResonance',
+            'trackLowpassCutoff', 'trackLowpassResonance'
+        ];
+        
+        let effectParamIndex = baseParams.length;
+        effectParams.forEach((param) => {
+            const keyframes = window.keyframeManager.getParameterKeyframes(clipId, param);
+            
+            if (keyframes.length > 0) {
+                keyframes.forEach(kf => {
+                    this.createKeyframeDiamond(clipElement, clip, kf, param, trackId, effectParamIndex);
+                });
+                effectParamIndex++;
+            }
         });
     }
     
