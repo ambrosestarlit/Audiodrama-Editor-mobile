@@ -413,11 +413,11 @@ class TrackManager {
             clipElement.classList.add('selected');
             this.selectedClip = { trackId, clipId };
             
-            // キーフレームパネルを表示
+            // キーフレーム自動記録を有効化
             const track = this.getTrack(trackId);
             const clip = track?.clips.find(c => c.id === clipId);
             if (clip && window.timelineKeyframeUI) {
-                window.timelineKeyframeUI.showKeyframePanel(clip, trackId);
+                window.timelineKeyframeUI.enableKeyframeRecording(clip, trackId);
             }
         }
     }
