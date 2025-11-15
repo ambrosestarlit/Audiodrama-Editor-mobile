@@ -192,23 +192,11 @@ class MobileUI {
         const trackId = trackElement.dataset.trackId;
         const currentVolume = 100; // デフォルト値
         
-        // トラック名とコントロールを囲む行を作成
-        const nameRow = document.createElement('div');
-        nameRow.className = 'track-name-row';
-        
-        // 既存の要素を移動
-        const trackName = trackHeader.querySelector('.track-name');
-        const trackControls = trackHeader.querySelector('.track-controls');
-        
-        if (trackName) nameRow.appendChild(trackName);
-        if (trackControls) nameRow.appendChild(trackControls);
-        
-        // ボリューム行を作成
+        // ボリューム行を作成(横並びで追加)
         const volumeRow = document.createElement('div');
         volumeRow.className = 'track-volume-row';
         volumeRow.innerHTML = `
             <div class="volume-slider-container">
-                <img src="slider-thumb.png" alt="🐻" style="width: 24px; height: 24px;">
                 <input type="range" 
                     class="track-volume-slider" 
                     min="0" 
@@ -219,9 +207,7 @@ class MobileUI {
             </div>
         `;
         
-        // ヘッダーをクリア して新しい構造を追加
-        trackHeader.innerHTML = '';
-        trackHeader.appendChild(nameRow);
+        // ヘッダーの最後に追加(横並び)
         trackHeader.appendChild(volumeRow);
         
         // スライダーのイベントリスナー

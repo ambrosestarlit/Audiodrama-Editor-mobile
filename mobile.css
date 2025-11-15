@@ -256,27 +256,28 @@
     }
     
     .transport-btn {
-        width: 64px !important;
-        height: 64px !important;
-        border-radius: 50%;
-        background: var(--color-primary-dark);
-        border: 3px solid var(--color-accent);
+        width: 72px !important;
+        height: 72px !important;
+        border: none !important;
+        background: transparent !important;
         cursor: pointer;
         transition: all 0.2s;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        padding: 0;
+        box-shadow: none !important;
     }
     
     .transport-btn:active {
-        transform: scale(0.95);
+        transform: scale(0.9);
     }
     
     .transport-icon {
-        width: 40px;
-        height: 40px;
+        width: 72px !important;
+        height: 72px !important;
         object-fit: contain;
+        filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
     }
     
     .time-display {
@@ -310,16 +311,20 @@
         border-radius: 12px;
         padding: 12px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        display: flex;
+        flex-direction: column;
     }
     
     .track-header {
         width: 100% !important;
-        padding: 0 0 12px 0 !important;
+        padding: 0 !important;
         border-right: none !important;
-        border-bottom: 1px solid var(--color-border);
+        border-bottom: none !important;
         display: flex;
-        flex-direction: column;
+        flex-direction: row !important;
+        align-items: center;
         gap: 8px;
+        margin-bottom: 12px;
     }
     
     /* PC版のボリューム要素を非表示 */
@@ -327,123 +332,129 @@
         display: none !important;
     }
     
-    .track-name-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
+    /* トラック名 */
     .track-name {
         flex: 1;
         font-size: 14px !important;
         font-weight: bold;
-        padding: 6px 10px !important;
+        padding: 8px 12px !important;
         background: var(--color-accent-light);
         border: 1px solid var(--color-accent);
         border-radius: 6px;
+        min-width: 0;
     }
     
+    /* コントロールボタン */
     .track-controls {
         display: flex !important;
         flex-direction: row !important;
-        gap: 6px;
+        gap: 4px;
         align-items: center;
+        flex-shrink: 0;
     }
     
     .track-btn {
-        width: 36px !important;
-        height: 36px !important;
-        font-size: 12px !important;
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 11px !important;
         border-radius: 6px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: bold;
+        padding: 0 !important;
     }
     
     .track-delete-btn {
-        width: 36px !important;
-        height: 36px !important;
+        width: 32px !important;
+        height: 32px !important;
         background: var(--color-danger) !important;
         color: white;
-        font-size: 18px;
+        font-size: 16px;
     }
     
-    /* ボリュームスライダー行 */
+    /* ボリュームスライダー(横並び配置) */
     .track-volume-row {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
+        flex-shrink: 0;
+        min-width: 120px;
+    }
+    
+    .track-volume-row .file-item-icon {
+        display: none; /* くまアイコンは非表示(スライダーのつまみで表現) */
     }
     
     .volume-slider-container {
         flex: 1;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
     }
     
     .track-volume-slider {
         flex: 1;
-        height: 32px;
+        height: 28px;
         -webkit-appearance: none;
         appearance: none;
         background: linear-gradient(to right, 
             var(--color-accent-light) 0%, 
             var(--color-accent) 100%);
-        border-radius: 16px;
+        border-radius: 14px;
         outline: none;
+        min-width: 60px;
     }
     
     .track-volume-slider::-webkit-slider-thumb {
         -webkit-appearance: none;
         appearance: none;
-        width: 28px;
-        height: 28px;
+        width: 24px;
+        height: 24px;
         background: url('slider-thumb.png') center/contain no-repeat;
         cursor: pointer;
     }
     
     .track-volume-slider::-moz-range-thumb {
-        width: 28px;
-        height: 28px;
+        width: 24px;
+        height: 24px;
         background: url('slider-thumb.png') center/contain no-repeat;
         border: none;
         cursor: pointer;
     }
     
     .track-volume-value {
-        min-width: 52px;
+        min-width: 36px;
         text-align: center;
-        font-size: 14px;
+        font-size: 12px;
         font-weight: bold;
         font-family: 'Courier New', monospace;
         color: var(--color-primary-dark);
         background: var(--color-secondary-light);
-        padding: 4px 8px;
-        border-radius: 6px;
+        padding: 4px 6px;
+        border-radius: 4px;
     }
     
     /* トラックコンテンツ(波形表示エリア) */
     .track-content {
-        min-height: 100px !important;
+        min-height: 180px !important;
         background: var(--color-bg);
         border: 2px solid var(--color-border);
         border-radius: 8px;
-        margin-top: 12px;
         position: relative;
         overflow-x: auto;
+        overflow-y: hidden;
     }
     
     .track-canvas {
         width: 100%;
-        height: 100px;
+        height: 180px !important;
         background: var(--color-secondary-light);
         border-radius: 6px;
     }
     
     .track-clip {
-        height: 96px !important;
+        height: 176px !important;
         border-radius: 8px;
         cursor: move;
     }
@@ -454,12 +465,13 @@
     }
     
     .clip-name {
-        font-size: 11px !important;
-        padding: 4px 6px;
+        font-size: 12px !important;
+        padding: 6px 8px;
     }
     
     .clip-resize-handle {
-        width: 12px !important;
+        width: 16px !important;
+        height: 100%;
     }
     
     /* ===== トラック追加ボタン ===== */
@@ -590,18 +602,30 @@
     }
     
     .transport-btn {
-        width: 56px !important;
-        height: 56px !important;
+        width: 64px !important;
+        height: 64px !important;
     }
     
     .transport-icon {
-        width: 36px;
-        height: 36px;
+        width: 64px !important;
+        height: 64px !important;
     }
     
     .track-btn {
-        width: 32px !important;
-        height: 32px !important;
-        font-size: 11px !important;
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 10px !important;
+    }
+    
+    .track-content {
+        min-height: 150px !important;
+    }
+    
+    .track-canvas {
+        height: 150px !important;
+    }
+    
+    .track-clip {
+        height: 146px !important;
     }
 }
