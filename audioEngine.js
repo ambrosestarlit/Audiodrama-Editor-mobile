@@ -697,13 +697,6 @@ class AudioEngine {
             clipContextStartTime = contextStartTime + Math.max(0, clipStartTime - playbackStartTime);
         }
         
-        console.log(`🐻🐻 Clip "${clip.file?.name || 'unknown'}":`);
-        console.log(`  - clipStartTime: ${clipStartTime}s`);
-        console.log(`  - playbackStartTime: ${playbackStartTime}s`);
-        console.log(`  - contextStartTime: ${contextStartTime}s`);
-        console.log(`  - clipContextStartTime: ${clipContextStartTime}s`);
-        console.log(`  - audioContext.currentTime: ${this.audioContext.currentTime}s`);
-        
         // クリップゲインを適用（キーフレームまたは固定値）
         const baseClipGain = clip.gain ? Math.pow(10, clip.gain / 20) : 1.0;
         this.applyKeyframeAutomation(clip, 'gain', clipGainNode.gain, clipContextStartTime, clipStartTime, baseClipGain);
@@ -758,17 +751,15 @@ class AudioEngine {
     applyKeyframeAutomation(clip, parameter, audioParam, contextStartTime, clipStartTime, defaultValue) {
         if (!window.keyframeManager) return;
         
-        console.log(`🔍 applyKeyframeAutomation: clipId=${clip.id}, parameter=${parameter}`);
-        
         const keyframes = window.keyframeManager.getParameterKeyframes(clip.id, parameter);
-        
-        console.log(`🐻 [${parameter}] キーフレーム数: ${keyframes.length}`, keyframes);
         
         if (keyframes.length === 0) {
             // キーフレームがない場合はデフォルト値を設定
             audioParam.setValueAtTime(defaultValue, contextStartTime);
             return;
         }
+        
+        console.log(`🐻 [${parameter}] キーフレーム適用: ${keyframes.length}個`);
         
         // CRITICAL: Web Audio APIでは過去の時間に値を設定できない
         // すべての時間が audioContext.currentTime より後である必要がある
@@ -779,7 +770,6 @@ class AudioEngine {
         if (keyframes[0].time > 0) {
             const startTime = Math.max(minTime, contextStartTime);
             audioParam.setValueAtTime(defaultValue, startTime);
-            console.log(`🐻 [${parameter}] 開始値: ${defaultValue} @ ${startTime} (now=${now})`);
         }
         
         // キーフレームの値をAudioParamに設定
@@ -790,16 +780,12 @@ class AudioEngine {
             
             // CRITICAL: 時間が過去の場合は現在時刻に調整
             if (time < minTime) {
-                console.log(`🐻 [${parameter}] ⚠️ KF${index} 時間が過去! ${time} → ${minTime}`);
                 time = minTime;
             }
-            
-            console.log(`🐻 [${parameter}] KF${index}: value=${kf.value}, time=${kf.time}s, absolute=${time}s (now=${now})`);
             
             if (index === 0) {
                 // 最初のキーフレーム
                 audioParam.setValueAtTime(kf.value, time);
-                console.log(`  → setValueAtTime(${kf.value}, ${time})`);
             } else {
                 const prevKf = keyframes[index - 1];
                 const prevTime = contextStartTime + prevKf.time;
@@ -809,8 +795,6 @@ class AudioEngine {
                     case 'linear':
                         // CRITICAL: linearRampToValueAtTimeの前に、必ず前の値をsetValueAtTime
                         audioParam.setValueAtTime(prevKf.value, Math.max(minTime, prevTime));
-                        console.log(`  → setValueAtTime(${prevKf.value}, ${Math.max(minTime, prevTime)}) [before ramp]`);
-                        console.log(`  → linearRampToValueAtTime(${kf.value}, ${time})`);
                         audioParam.linearRampToValueAtTime(kf.value, time);
                         break;
                     case 'step':
@@ -827,8 +811,6 @@ class AudioEngine {
                     default:
                         // CRITICAL: linearRampToValueAtTimeの前に、必ず前の値をsetValueAtTime
                         audioParam.setValueAtTime(prevKf.value, Math.max(minTime, prevTime));
-                        console.log(`  → setValueAtTime(${prevKf.value}, ${Math.max(minTime, prevTime)}) [before ramp, default]`);
-                        console.log(`  → linearRampToValueAtTime(${kf.value}, ${time}) [default]`);
                         audioParam.linearRampToValueAtTime(kf.value, time);
                 }
             }

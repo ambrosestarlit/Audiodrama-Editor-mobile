@@ -1103,7 +1103,8 @@ class VoiceDramaDAW {
     
     // キーフレームに合わせてスライダーを更新
     updateSlidersFromKeyframes() {
-        if (!window.timelineKeyframeUI || !window.timelineKeyframeUI.selectedClip) return;
+        if (!window.timelineKeyframeUI) return;
+        if (!window.timelineKeyframeUI.selectedClip) return;
         
         const clip = window.timelineKeyframeUI.selectedClip;
         const trackId = window.timelineKeyframeUI.selectedTrackId;
