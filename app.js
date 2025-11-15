@@ -995,14 +995,22 @@ class VoiceDramaDAW {
     createPlayhead() {
         // 既存のプレイヘッドを削除
         const existing = document.querySelector('.playhead');
-        if (existing) return; // 既に存在する場合は何もしない
+        if (existing) {
+            console.log('⚠️ Playhead already exists, skipping creation');
+            return; // 既に存在する場合は何もしない
+        }
         
         const tracksContainer = document.getElementById('tracksContainer');
-        if (!tracksContainer) return;
+        if (!tracksContainer) {
+            console.log('⚠️ tracksContainer not found');
+            return;
+        }
         
         // track-headerの実際の幅を取得
         const trackHeader = document.querySelector('.track-header');
         const headerWidth = trackHeader ? trackHeader.offsetWidth : 240;
+        
+        console.log(`✅ Creating playhead at ${headerWidth}px`);
         
         const playhead = document.createElement('div');
         playhead.className = 'playhead';
@@ -1011,6 +1019,7 @@ class VoiceDramaDAW {
         
         // ドラッグ機能を追加
         this.setupPlayheadDrag(playhead);
+        console.log('✅ Playhead drag setup complete');
     }
     
     // プレイヘッドのドラッグ機能を設定
@@ -1019,11 +1028,21 @@ class VoiceDramaDAW {
         let wasPlaying = false;
         
         const onMouseDown = (e) => {
-            // ▽部分（::before擬似要素）のクリック判定
-            // クリック位置が上部8px以内なら▽部分
+            // くまさん部分（::before擬似要素）のクリック判定
+            // くまさんは top:-20px, height:36px なので、
+            // クリック位置がplayhead.topより上にある場合のみドラッグ可能
             const rect = playhead.getBoundingClientRect();
-            if (e.clientY > rect.top + 8) return;
             
+            // くまさんの範囲: rect.top - 20 から rect.top + 16
+            const bearTop = rect.top - 20;
+            const bearBottom = rect.top + 16;
+            
+            if (e.clientY < bearTop || e.clientY > bearBottom) {
+                console.log('⚠️ クリック位置がくまさんの範囲外');
+                return;
+            }
+            
+            console.log('✅ くまさんドラッグ開始');
             isDragging = true;
             wasPlaying = this.isPlaying;
             
