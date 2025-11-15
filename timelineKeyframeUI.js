@@ -214,8 +214,11 @@ class TimelineKeyframeUI {
             volumeSlider.dataset.keyframeEnabled = 'true';
             
             volumeSlider.addEventListener('input', () => {
+                console.log(`📊 Volume slider input: selectedClip=${this.selectedClip?.id}, selectedTrackId=${this.selectedTrackId}, trackId=${trackId}`);
                 if (this.selectedClip && this.selectedTrackId === trackId) {
                     this.recordKeyframe('volume', trackId);
+                } else {
+                    console.log(`  ⚠️ 条件不一致: selectedClip=${!!this.selectedClip}, trackIdMatch=${this.selectedTrackId === trackId}`);
                 }
             });
         }
@@ -226,8 +229,11 @@ class TimelineKeyframeUI {
             panSlider.dataset.keyframeEnabled = 'true';
             
             panSlider.addEventListener('input', () => {
+                console.log(`📊 Pan slider input: selectedClip=${this.selectedClip?.id}, selectedTrackId=${this.selectedTrackId}, trackId=${trackId}`);
                 if (this.selectedClip && this.selectedTrackId === trackId) {
                     this.recordKeyframe('pan', trackId);
+                } else {
+                    console.log(`  ⚠️ 条件不一致: selectedClip=${!!this.selectedClip}, trackIdMatch=${this.selectedTrackId === trackId}`);
                 }
             });
         }
