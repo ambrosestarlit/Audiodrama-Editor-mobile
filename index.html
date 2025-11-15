@@ -114,7 +114,10 @@
                 </div>
                 <div class="effects-content">
                     <div class="effect-section">
-                        <h3>イコライザー</h3>
+                        <div class="effect-section-header">
+                            <h3>イコライザー</h3>
+                            <button class="keyframe-bear-btn" data-effect="equalizer" title="現在の値でキーフレームを一括追加"></button>
+                        </div>
                         <div class="eq-controls">
                             <div class="control-row">
                                 <label class="checkbox-label">
@@ -134,7 +137,6 @@
                                     <input type="range" id="eqLow" min="-24" max="24" value="0" step="0.1" disabled>
                                     <span class="control-value">0.0 dB</span>
                                 </div>
-                                <button class="keyframe-bear-btn" data-param="eqLow" title="キーフレームを追加"></button>
                             </div>
                             <div class="control-row">
                                 <div class="control-row-content">
@@ -142,7 +144,6 @@
                                     <input type="range" id="eqMid" min="-24" max="24" value="0" step="0.1" disabled>
                                     <span class="control-value">0.0 dB</span>
                                 </div>
-                                <button class="keyframe-bear-btn" data-param="eqMid" title="キーフレームを追加"></button>
                             </div>
                             <div class="control-row">
                                 <div class="control-row-content">
@@ -150,12 +151,15 @@
                                     <input type="range" id="eqHigh" min="-24" max="24" value="0" step="0.1" disabled>
                                     <span class="control-value">0.0 dB</span>
                                 </div>
-                                <button class="keyframe-bear-btn" data-param="eqHigh" title="キーフレームを追加"></button>
+                            </div>
                             </div>
                         </div>
                     </div>
                     <div class="effect-section">
-                        <h3>リミッター</h3>
+                        <div class="effect-section-header">
+                            <h3>リミッター</h3>
+                            <button class="keyframe-bear-btn" data-effect="limiter" title="現在の値でキーフレームを一括追加"></button>
+                        </div>
                         <div class="limiter-controls">
                             <div class="control-row">
                                 <label class="checkbox-label">
@@ -169,7 +173,6 @@
                                     <input type="range" id="trackLimiterThreshold" min="-24" max="0" value="-6" step="0.1" disabled>
                                     <span class="control-value">-6 dB</span>
                                 </div>
-                                <button class="keyframe-bear-btn" data-param="trackLimiterThreshold" title="キーフレームを追加"></button>
                             </div>
                             <div class="control-row">
                                 <div class="control-row-content">
@@ -177,7 +180,6 @@
                                     <input type="range" id="trackLimiterRelease" min="10" max="1000" value="250" step="10" disabled>
                                     <span class="control-value">250 ms</span>
                                 </div>
-                                <button class="keyframe-bear-btn" data-param="trackLimiterRelease" title="キーフレームを追加"></button>
                             </div>
                             <div class="control-row">
                                 <div class="control-row-content">
@@ -185,12 +187,15 @@
                                     <input type="range" id="trackLimiterRatio" min="1" max="20" value="20" step="0.1" disabled>
                                     <span class="control-value">20:1</span>
                                 </div>
-                                <button class="keyframe-bear-btn" data-param="trackLimiterRatio" title="キーフレームを追加"></button>
+                            </div>
                             </div>
                         </div>
                     </div>
                     <div class="effect-section">
-                        <h3>ホワイトノイズ除去</h3>
+                        <div class="effect-section-header">
+                            <h3>ホワイトノイズ除去</h3>
+                            <button class="keyframe-bear-btn" data-effect="expander" title="現在の値でキーフレームを一括追加"></button>
+                        </div>
                         <div class="expander-controls">
                             <div class="control-row">
                                 <label class="checkbox-label">
@@ -204,7 +209,6 @@
                                     <input type="range" id="trackExpanderThreshold" min="-60" max="-20" value="-40" step="1" disabled>
                                     <span class="control-value">-40 dB</span>
                                 </div>
-                                <button class="keyframe-bear-btn" data-param="trackExpanderThreshold" title="キーフレームを追加"></button>
                             </div>
                             <div class="control-row">
                                 <div class="control-row-content">
@@ -212,7 +216,6 @@
                                     <input type="range" id="trackExpanderRatio" min="0.1" max="1" value="0.5" step="0.05" disabled>
                                     <span class="control-value">0.50</span>
                                 </div>
-                                <button class="keyframe-bear-btn" data-param="trackExpanderRatio" title="キーフレームを追加"></button>
                             </div>
                             <div class="control-row">
                                 <div class="control-row-content">
@@ -220,7 +223,6 @@
                                     <input type="range" id="trackExpanderRelease" min="50" max="500" value="250" step="10" disabled>
                                     <span class="control-value">250 ms</span>
                                 </div>
-                                <button class="keyframe-bear-btn" data-param="trackExpanderRelease" title="キーフレームを追加"></button>
                             </div>
                             <div class="expander-info">
                                 💡 ゲインを上げた音声の"サー"というノイズを軽減<br>
@@ -230,7 +232,10 @@
                         </div>
                     </div>
                     <div class="effect-section">
-                        <h3>帯域カット</h3>
+                        <div class="effect-section-header">
+                            <h3>帯域カット</h3>
+                            <button class="keyframe-bear-btn" data-effect="filters" title="現在の値でキーフレームを一括追加"></button>
+                        </div>
                         <div class="noisereduction-controls">
                             <div class="control-row">
                                 <label class="checkbox-label">
@@ -254,7 +259,6 @@
                                         <input type="range" id="trackHighpassCutoff" min="20" max="500" value="80" step="5" disabled>
                                         <span class="control-value">80 Hz</span>
                                     </div>
-                                    <button class="keyframe-bear-btn" data-param="trackHighpassCutoff" title="キーフレームを追加"></button>
                                 </div>
                                 <div class="control-row">
                                     <div class="control-row-content">
@@ -262,7 +266,6 @@
                                         <input type="range" id="trackHighpassResonance" min="0.1" max="10" value="0.7" step="0.1" disabled>
                                         <span class="control-value">0.7</span>
                                     </div>
-                                    <button class="keyframe-bear-btn" data-param="trackHighpassResonance" title="キーフレームを追加"></button>
                                 </div>
                             </div>
                             
@@ -281,7 +284,6 @@
                                         <input type="range" id="trackLowpassCutoff" min="1000" max="20000" value="8000" step="100" disabled>
                                         <span class="control-value">8000 Hz</span>
                                     </div>
-                                    <button class="keyframe-bear-btn" data-param="trackLowpassCutoff" title="キーフレームを追加"></button>
                                 </div>
                                 <div class="control-row">
                                     <div class="control-row-content">
@@ -289,7 +291,6 @@
                                         <input type="range" id="trackLowpassResonance" min="0.1" max="10" value="0.7" step="0.1" disabled>
                                         <span class="control-value">0.7</span>
                                     </div>
-                                    <button class="keyframe-bear-btn" data-param="trackLowpassResonance" title="キーフレームを追加"></button>
                                 </div>
                             </div>
                             

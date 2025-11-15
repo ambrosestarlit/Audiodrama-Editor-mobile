@@ -751,9 +751,16 @@ class AudioEngine {
             return;
         }
         
+        // 開始前の値を設定（最初のキーフレームより前の時間）
+        if (keyframes[0].time > 0) {
+            audioParam.setValueAtTime(defaultValue, contextStartTime);
+        }
+        
         // キーフレームの値をAudioParamに設定
         keyframes.forEach((kf, index) => {
-            const time = contextStartTime + (kf.time - clipStartTime);
+            // キーフレーム時間はクリップ内の相対時間(0から始まる)
+            // AudioContextの絶対時間に変換
+            const time = contextStartTime + kf.time;
             
             if (index === 0) {
                 // 最初のキーフレーム
@@ -775,19 +782,26 @@ class AudioEngine {
                     case 'ease-in-out':
                         // Web Audio APIではカスタムイージングは難しいので、
                         // 複数のlinearRampで近似
-                        this.approximateEasing(audioParam, prevKf, kf, time, contextStartTime, clipStartTime);
+                        this.approximateEasing(audioParam, prevKf, kf, time, contextStartTime);
                         break;
                     default:
                         audioParam.linearRampToValueAtTime(kf.value, time);
                 }
             }
         });
+        
+        // 最後のキーフレーム以降も値を保持
+        const lastKf = keyframes[keyframes.length - 1];
+        const clipEndTime = contextStartTime + clip.duration;
+        if (contextStartTime + lastKf.time < clipEndTime) {
+            audioParam.setValueAtTime(lastKf.value, contextStartTime + lastKf.time + 0.001);
+        }
     }
     
     // イージングを複数のlinearRampで近似
-    approximateEasing(audioParam, startKf, endKf, endTime, contextStartTime, clipStartTime) {
+    approximateEasing(audioParam, startKf, endKf, endTime, contextStartTime) {
         const steps = 10;
-        const startTime = contextStartTime + (startKf.time - clipStartTime);
+        const startTime = contextStartTime + startKf.time;
         const duration = endTime - startTime;
         
         for (let i = 1; i <= steps; i++) {

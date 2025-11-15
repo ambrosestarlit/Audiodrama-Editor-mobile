@@ -30,13 +30,102 @@ class TimelineKeyframeUI {
         
         bearButtons.forEach(button => {
             button.addEventListener('click', (e) => {
-                const param = button.dataset.param;
-                if (!param) return;
+                const effect = button.dataset.effect;
                 
-                // エフェクトパラメーターのキーフレームを追加
-                this.recordEffectKeyframe(param);
+                if (effect) {
+                    // エフェクト一括キーフレーム追加
+                    this.recordEffectGroupKeyframes(effect);
+                } else {
+                    // 個別パラメーター(後方互換用)
+                    const param = button.dataset.param;
+                    if (param) {
+                        this.recordEffectKeyframe(param);
+                    }
+                }
             });
         });
+    }
+    
+    recordEffectGroupKeyframes(effectName) {
+        if (!this.selectedClip || !this.selectedTrackId) {
+            alert('クリップを選択してください!');
+            return;
+        }
+        
+        const clip = window.trackManager.getTrack(this.selectedTrackId)?.clips
+            .find(c => c.id === this.selectedClip.id);
+        if (!clip) return;
+        
+        // 現在の再生時間からクリップ内の相対時間を計算
+        const absoluteTime = window.audioEngine.currentTime;
+        const relativeTime = absoluteTime - clip.startTime;
+        
+        // クリップの範囲外なら何もしない
+        if (relativeTime < 0 || relativeTime > clip.duration) {
+            alert('クリップの範囲内で実行してください!');
+            return;
+        }
+        
+        // エフェクトごとのパラメーターリスト
+        const effectParams = {
+            'equalizer': ['eqLow', 'eqMid', 'eqHigh'],
+            'limiter': ['trackLimiterThreshold', 'trackLimiterRelease', 'trackLimiterRatio'],
+            'expander': ['trackExpanderThreshold', 'trackExpanderRatio', 'trackExpanderRelease'],
+            'filters': ['trackHighpassCutoff', 'trackHighpassResonance', 'trackLowpassCutoff', 'trackLowpassResonance']
+        };
+        
+        const params = effectParams[effectName];
+        if (!params) return;
+        
+        let addedCount = 0;
+        
+        // 各パラメーターのキーフレームを追加
+        params.forEach(elementId => {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            const value = parseFloat(element.value);
+            
+            // キーフレーム追加または更新
+            const nearest = window.keyframeManager.getNearestKeyframe(
+                this.selectedClip.id, 
+                elementId, 
+                relativeTime, 
+                0.1
+            );
+            
+            if (nearest) {
+                window.keyframeManager.updateKeyframe(
+                    this.selectedClip.id,
+                    elementId,
+                    nearest.id,
+                    { value }
+                );
+            } else {
+                window.keyframeManager.addKeyframe(
+                    this.selectedClip.id,
+                    elementId,
+                    relativeTime,
+                    value,
+                    'linear'
+                );
+                addedCount++;
+            }
+        });
+        
+        // 再描画
+        this.renderKeyframesForClip(this.selectedClip.id, this.selectedTrackId);
+        
+        // 視覚的フィードバック
+        const button = document.querySelector(`.keyframe-bear-btn[data-effect="${effectName}"]`);
+        if (button) {
+            button.style.transform = 'scale(1.2)';
+            setTimeout(() => {
+                button.style.transform = '';
+            }, 200);
+        }
+        
+        console.log(`✨ ${effectName}のキーフレームを${addedCount}個追加しました!`);
     }
     
     recordEffectKeyframe(elementId) {

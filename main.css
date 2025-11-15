@@ -679,6 +679,20 @@ body {
     border: 2px solid var(--color-border-light);
 }
 
+.effect-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.effect-section-header h3 {
+    margin: 0;
+    font-size: 24px;
+    color: var(--color-primary);
+    font-weight: normal;
+}
+
 .effect-section h3 {
     font-size: 17px;
     color: var(--color-primary);
