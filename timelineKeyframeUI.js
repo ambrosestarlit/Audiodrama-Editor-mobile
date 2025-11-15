@@ -244,8 +244,13 @@ class TimelineKeyframeUI {
         const absoluteTime = window.audioEngine.currentTime;
         const relativeTime = absoluteTime - clip.startTime;
         
+        console.log(`🎯 recordKeyframe: parameter=${parameter}, currentTime=${absoluteTime}, relativeTime=${relativeTime}`);
+        
         // クリップの範囲外なら何もしない
-        if (relativeTime < 0 || relativeTime > clip.duration) return;
+        if (relativeTime < 0 || relativeTime > clip.duration) {
+            console.log(`  ⚠️ 範囲外!`);
+            return;
+        }
         
         // 現在の値を取得
         let value;
