@@ -106,13 +106,6 @@ class TrackManager {
         
         // イベントリスナー設定
         this.setupTrackEvents(trackElement, track);
-        
-        // モバイルUI: ボリュームスライダーを追加
-        if (window.mobileUI && window.innerWidth <= 768) {
-            setTimeout(() => {
-                window.mobileUI.addVolumeSliderToTrack(trackElement);
-            }, 0);
-        }
     }
     
     // トラックイベント設定

@@ -69,15 +69,6 @@ class VoiceDramaDAW {
             this.createNewProject();
             console.log('✓ New project created');
             
-            // モバイルUI初期化(既存のトラックにボリュームスライダーを追加)
-            if (window.mobileUI && window.innerWidth <= 768) {
-                console.log('Initializing mobile UI for existing tracks...');
-                setTimeout(() => {
-                    window.mobileUI.addVolumeSlidersToAllTracks();
-                    window.mobileUI.repositionTrackControls();
-                }, 100);
-            }
-            
             console.log('✓ VoiceDrama DAW initialized successfully');
         } catch (error) {
             console.error('Initialization error:', error);
