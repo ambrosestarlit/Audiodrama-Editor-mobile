@@ -173,27 +173,56 @@
         background: white;
         border: 2px solid var(--color-border);
         border-radius: 8px;
-        cursor: move;
+        cursor: pointer;
         min-height: 56px;
         display: flex;
         align-items: center;
         gap: 12px;
+        transition: all 0.2s ease;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+    }
+    
+    .file-item:active {
+        transform: scale(0.98);
+        background: var(--color-secondary-light);
     }
     
     .file-item.selected {
         background: var(--color-accent-light);
         border-color: var(--color-accent);
+        box-shadow: 0 2px 8px rgba(205, 133, 63, 0.3);
+    }
+    
+    .file-item-icon {
+        font-size: 24px;
+        width: 32px;
+        text-align: center;
+        flex-shrink: 0;
+    }
+    
+    .file-item-info {
+        flex: 1;
+        min-width: 0;
     }
     
     .file-item-name {
-        flex: 1;
         font-size: 14px;
         font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        margin-bottom: 2px;
     }
     
     .file-item-duration {
         font-size: 12px;
         color: var(--color-text-secondary);
+    }
+    
+    .file-item-waveform {
+        display: none; /* スマホでは波形非表示 */
     }
     
     .empty-state {
@@ -291,6 +320,11 @@
         display: flex;
         flex-direction: column;
         gap: 8px;
+    }
+    
+    /* PC版のボリューム要素を非表示 */
+    .track-header .track-volume {
+        display: none !important;
     }
     
     .track-name-row {

@@ -71,12 +71,23 @@ class FileManager {
     // ファイル選択処理
     async handleFileSelect(files) {
         const category = this.currentCategory;
-        const validFiles = Array.from(files).filter(file => 
-            file.type.startsWith('audio/')
-        );
+        
+        // 音声ファイルの検証(MIMEタイプまたは拡張子)
+        const audioExtensions = ['.mp3', '.wav', '.m4a', '.aac', '.ogg', '.flac', '.wma', '.aiff', '.webm'];
+        
+        const validFiles = Array.from(files).filter(file => {
+            // MIMEタイプで判定
+            if (file.type.startsWith('audio/')) {
+                return true;
+            }
+            
+            // 拡張子で判定(iOSなどでMIMEタイプが空の場合)
+            const fileName = file.name.toLowerCase();
+            return audioExtensions.some(ext => fileName.endsWith(ext));
+        });
         
         if (validFiles.length === 0) {
-            alert('音声ファイルを選択してください');
+            alert('音声ファイルを選択してください\n\n対応形式:\nMP3, WAV, M4A, AAC, OGG, FLAC, WMA, AIFF, WebM');
             return;
         }
         
@@ -182,6 +193,14 @@ class FileManager {
             
             if (track) {
                 await window.trackManager.addClip(track.id, audioFile, 0);
+            }
+        });
+        
+        // モバイル: クリック/タップで選択状態を切り替え
+        item.addEventListener('click', (e) => {
+            // ダブルクリック/タップを妨げないように
+            if (e.detail === 1) {
+                item.classList.toggle('selected');
             }
         });
         
