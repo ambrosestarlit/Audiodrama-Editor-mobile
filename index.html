@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sound Bear - 音声作品制作ツール</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="theme.css">
+    <link rel="stylesheet" href="responsive.css">
+    <link rel="stylesheet" href="mobile.css">
+    <link rel="stylesheet" href="effects-collapse.css">
+</head>
+<body>
+    <div id="app">
+        <!-- ヘッダー -->
+        <header class="app-header">
+            <div class="header-left">
+                <h1 class="app-title">
+                    <img src="user-icon.png" alt="🐻" class="app-icon">
+                    Sound Bear
+                </h1>
+                <div class="project-info">
+                    <input type="text" id="projectName" class="project-name-input" value="新規プロジェクト" title="クリックして編集">
+                </div>
+            </div>
+            <div class="header-controls">
+                <button class="btn btn-secondary history-btn" id="undoBtn" disabled title="元に戻す (Ctrl/Cmd+Z)">
+                    <img src="undo.png" alt="元に戻す" class="history-icon">
+                </button>
+                <button class="btn btn-secondary history-btn" id="redoBtn" disabled title="やり直す (Ctrl/Cmd+Y)">
+                    <img src="redo.png" alt="やり直す" class="history-icon">
+                </button>
+                <button class="btn btn-primary" id="newProjectBtn">新規</button>
+                <button class="btn btn-primary" id="saveProjectBtn">保存</button>
+                <button class="btn btn-primary" id="loadProjectBtn">読込</button>
+                <button class="btn btn-success" id="exportBtn">書き出し</button>
+            </div>
+        </header>
+
+        <!-- メインコンテンツ -->
+        <div class="main-container">
+            <!-- サイドバー（ファイルブラウザ） -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <img src="gorone-bear.png" alt="🐻" class="sidebar-bear">
+                    <button class="btn btn-primary btn-icon" id="deleteFilesBtn" title="選択したファイルを削除">-</button>
+                    <button class="btn btn-primary btn-icon" id="importFilesBtn">+</button>
+                </div>
+                <div class="file-tabs">
+                    <button class="tab-btn active" data-tab="dialogue">台詞</button>
+                    <button class="tab-btn" data-tab="sfx">SE</button>
+                    <button class="tab-btn" data-tab="bgm">BGM</button>
+                    <button class="tab-btn" data-tab="ambience">ME</button>
+                    <button class="tab-btn" data-tab="effects">その他</button>
+                </div>
+                <div class="file-list-container">
+                    <div class="file-list active" id="dialogue-list"></div>
+                    <div class="file-list" id="sfx-list"></div>
+                    <div class="file-list" id="bgm-list"></div>
+                    <div class="file-list" id="ambience-list"></div>
+                    <div class="file-list" id="effects-list"></div>
+                </div>
+            </aside>
+
+            <!-- タイムラインエリア -->
+            <main class="timeline-container">
+                <!-- トランスポートコントロール -->
+                <div class="transport-controls">
+                    <button class="transport-btn" id="playBtn">
+                        <img src="play.png" alt="再生" class="transport-icon">
+                    </button>
+                    <button class="transport-btn" id="pauseBtn">
+                        <img src="pause.png" alt="一時停止" class="transport-icon">
+                    </button>
+                    <button class="transport-btn" id="stopBtn">
+                        <img src="stop.png" alt="停止" class="transport-icon">
+                    </button>
+                    <div class="time-display">
+                        <span id="currentTime">00:00.000</span>
+                        <span>/</span>
+                        <span id="totalTime">00:00.000</span>
+                    </div>
+                    <div class="zoom-controls">
+                        <button class="btn btn-small" id="zoomInBtn">+</button>
+                        <button class="btn btn-small" id="zoomOutBtn">-</button>
+                        <button class="btn btn-small" id="fitBtn">全体</button>
+                    </div>
+                </div>
+
+                <!-- タイムライン -->
+                <div class="timeline-area" id="timelineArea">
+                    <div class="timeline-header">
+                        <div class="track-header-column">トラック</div>
+                        <div class="timeline-ruler" id="timelineRuler"></div>
+                    </div>
+                    <div class="tracks-container" id="tracksContainer">
+                        <!-- トラックが動的に追加される -->
+                    </div>
+                </div>
+
+                <!-- トラック追加ボタン -->
+                <div class="track-actions">
+                    <button class="btn btn-primary" id="addTrackBtn">+ トラック追加</button>
+                    <span class="track-count">トラック数: <span id="trackCount">0</span>/30</span>
+                </div>
+            </main>
+
+            <!-- エフェクトパネル -->
+            <aside class="effects-panel" id="effectsPanel">
+                <div class="panel-header">
+                    <h2>🎛️ エフェクト</h2>
+                    <button class="btn-close" id="closeEffectsBtn">✕</button>
+                </div>
+                <div class="effects-content">
+                    <div class="effect-section">
+                        <h3>イコライザー</h3>
+                        <div class="eq-controls">
+                            <div class="control-row">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="trackEQEnabled">
+                                    <span>イコライザーを有効化</span>
+                                </label>
+                            </div>
+                            <div class="eq-presets">
+                                <button class="btn btn-small eq-preset-btn" data-preset="flat" disabled>フラット</button>
+                                <button class="btn btn-small eq-preset-btn" data-preset="phone" disabled>電話風</button>
+                                <button class="btn btn-small eq-preset-btn" data-preset="clear" disabled>クリア</button>
+                                <button class="btn btn-small eq-preset-btn" data-preset="wall" disabled>壁越し</button>
+                            </div>
+                            <div class="control-row">
+                                <label>Low (100Hz)</label>
+                                <input type="range" id="eqLow" min="-24" max="24" value="0" step="0.1" disabled>
+                                <span class="control-value">0.0 dB</span>
+                            </div>
+                            <div class="control-row">
+                                <label>Mid (1kHz)</label>
+                                <input type="range" id="eqMid" min="-24" max="24" value="0" step="0.1" disabled>
+                                <span class="control-value">0.0 dB</span>
+                            </div>
+                            <div class="control-row">
+                                <label>High (10kHz)</label>
+                                <input type="range" id="eqHigh" min="-24" max="24" value="0" step="0.1" disabled>
+                                <span class="control-value">0.0 dB</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="effect-section">
+                        <h3>リミッター</h3>
+                        <div class="limiter-controls">
+                            <div class="control-row">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="trackLimiterEnabled">
+                                    <span>リミッターを有効化</span>
+                                </label>
+                            </div>
+                            <div class="control-row">
+                                <label>Threshold</label>
+                                <input type="range" id="trackLimiterThreshold" min="-24" max="0" value="-6" step="0.1" disabled>
+                                <span class="control-value">-6 dB</span>
+                            </div>
+                            <div class="control-row">
+                                <label>Release</label>
+                                <input type="range" id="trackLimiterRelease" min="10" max="1000" value="250" step="10" disabled>
+                                <span class="control-value">250 ms</span>
+                            </div>
+                            <div class="control-row">
+                                <label>Ratio</label>
+                                <input type="range" id="trackLimiterRatio" min="1" max="20" value="20" step="0.1" disabled>
+                                <span class="control-value">20:1</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="effect-section">
+                        <h3>ホワイトノイズ除去</h3>
+                        <div class="expander-controls">
+                            <div class="control-row">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="trackExpanderEnabled">
+                                    <span>ホワイトノイズ除去を有効化</span>
+                                </label>
+                            </div>
+                            <div class="control-row">
+                                <label>Threshold（閾値）</label>
+                                <input type="range" id="trackExpanderThreshold" min="-60" max="-20" value="-40" step="1" disabled>
+                                <span class="control-value">-40 dB</span>
+                            </div>
+                            <div class="control-row">
+                                <label>Ratio（比率）</label>
+                                <input type="range" id="trackExpanderRatio" min="0.1" max="1" value="0.5" step="0.05" disabled>
+                                <span class="control-value">0.50</span>
+                            </div>
+                            <div class="control-row">
+                                <label>Release</label>
+                                <input type="range" id="trackExpanderRelease" min="50" max="500" value="250" step="10" disabled>
+                                <span class="control-value">250 ms</span>
+                            </div>
+                            <div class="expander-info">
+                                💡 ゲインを上げた音声の"サー"というノイズを軽減<br>
+                                💡 Threshold以下の小さい音をさらに小さくします<br>
+                                💡 Ratioが小さいほど強力な効果
+                            </div>
+                        </div>
+                    </div>
+                    <div class="effect-section">
+                        <h3>帯域カット</h3>
+                        <div class="noisereduction-controls">
+                            <div class="control-row">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="trackNoiseReductionEnabled">
+                                    <span>帯域カットを有効化</span>
+                                </label>
+                            </div>
+                            
+                            <!-- ハイパスフィルタ -->
+                            <div class="filter-subsection">
+                                <h4>🔉 ハイパスフィルタ（低音カット）</h4>
+                                <div class="control-row">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="trackHighpassEnabled">
+                                        <span>有効化</span>
+                                    </label>
+                                </div>
+                                <div class="control-row">
+                                    <label>カットオフ周波数</label>
+                                    <input type="range" id="trackHighpassCutoff" min="20" max="500" value="80" step="5" disabled>
+                                    <span class="control-value">80 Hz</span>
+                                </div>
+                                <div class="control-row">
+                                    <label>レゾナンス (Q)</label>
+                                    <input type="range" id="trackHighpassResonance" min="0.1" max="10" value="0.7" step="0.1" disabled>
+                                    <span class="control-value">0.7</span>
+                                </div>
+                            </div>
+                            
+                            <!-- ローパスフィルタ -->
+                            <div class="filter-subsection">
+                                <h4>🔊 ローパスフィルタ（高音カット）</h4>
+                                <div class="control-row">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="trackLowpassEnabled">
+                                        <span>有効化</span>
+                                    </label>
+                                </div>
+                                <div class="control-row">
+                                    <label>カットオフ周波数</label>
+                                    <input type="range" id="trackLowpassCutoff" min="1000" max="20000" value="8000" step="100" disabled>
+                                    <span class="control-value">8000 Hz</span>
+                                </div>
+                                <div class="control-row">
+                                    <label>レゾナンス (Q)</label>
+                                    <input type="range" id="trackLowpassResonance" min="0.1" max="10" value="0.7" step="0.1" disabled>
+                                    <span class="control-value">0.7</span>
+                                </div>
+                            </div>
+                            
+                            <div class="filter-info">
+                                💡 ハイパス: エアコン音・風切り音などの低音ノイズをカット<br>
+                                💡 ローパス: サーッという高音ノイズをカット
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- モーダル：プロジェクト管理 -->
+    <div class="modal" id="projectModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>プロジェクト管理</h2>
+                <button class="btn-close" id="closeProjectModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="project-list" id="projectList">
+                    <!-- プロジェクト一覧が表示される -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- モーダル：書き出し -->
+    <div class="modal" id="exportModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>書き出し設定</h2>
+                <button class="btn-close" id="closeExportModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="export-options">
+                    <div class="option-group">
+                        <label>ファイル形式</label>
+                        <select id="exportFormat" class="form-select">
+                            <option value="wav">WAV (非圧縮)</option>
+                            <option value="mp3">MP3 (圧縮)</option>
+                        </select>
+                    </div>
+                    <div class="option-group">
+                        <label>サンプルレート</label>
+                        <select id="exportSampleRate" class="form-select">
+                            <option value="44100">44.1 kHz</option>
+                            <option value="48000" selected>48 kHz</option>
+                            <option value="96000">96 kHz</option>
+                        </select>
+                    </div>
+                    <div class="option-group">
+                        <label>ビットデプス</label>
+                        <select id="exportBitDepth" class="form-select">
+                            <option value="16">16 bit</option>
+                            <option value="24" selected>24 bit</option>
+                            <option value="32">32 bit float</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-success btn-large" id="startExportBtn">書き出し開始</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ファイル入力（非表示） -->
+    <input type="file" id="fileInput" multiple accept="audio/*" style="display: none;">
+    
+    <!-- クリップゲイン調整ポップアップ -->
+    <div class="clip-gain-popup" id="clipGainPopup" style="display: none;">
+        <div class="popup-header">
+            <h3 id="clipGainTitle">🎚️ クリップゲイン</h3>
+            <button class="btn-close" id="closeClipGainBtn">✕</button>
+        </div>
+        <div class="popup-content">
+            <div class="gain-slider-container">
+                <label>ゲイン調整</label>
+                <input type="range" id="clipGainSlider" min="-24" max="24" value="0" step="0.1">
+                <span class="gain-value" id="clipGainValue">0.0 dB</span>
+            </div>
+            <div class="gain-info">
+                <div class="info-row">
+                    <span>現在のピーク:</span>
+                    <span id="clipCurrentPeak" class="info-value">-- dB</span>
+                </div>
+                <div class="info-row">
+                    <span>調整後のピーク:</span>
+                    <span id="clipAdjustedPeak" class="info-value">-- dB</span>
+                </div>
+            </div>
+            <div class="gain-presets">
+                <button class="btn btn-small gain-preset-btn" data-value="0">0dB</button>
+                <button class="btn btn-small gain-preset-btn" data-value="3">+3dB</button>
+                <button class="btn btn-small gain-preset-btn" data-value="6">+6dB</button>
+                <button class="btn btn-small gain-preset-btn" data-value="-3">-3dB</button>
+                <button class="btn btn-small gain-preset-btn" data-value="-6">-6dB</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="audioEngine.js"></script>
+    <script src="projectManager.js"></script>
+    <script src="historyManager.js"></script>
+    <script src="trackManager.js"></script>
+    <script src="fileManager.js"></script>
+    <script src="effectsManager.js"></script>
+    <script src="exportManager.js"></script>
+    <script src="sliderUtils.js"></script>
+    <script src="mobile.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
