@@ -330,9 +330,6 @@ class TrackManager {
         menu.style.top = `${e.pageY}px`;
         
         menu.innerHTML = `
-            <div class="context-menu-item" data-action="keyframe">
-                🎬 キーフレームエディタ
-            </div>
             <div class="context-menu-item" data-action="gain">
                 🎚️ ゲイン調整
             </div>
@@ -350,9 +347,6 @@ class TrackManager {
                 const action = item.dataset.action;
                 
                 switch (action) {
-                    case 'keyframe':
-                        window.keyframeEditorUI.open(clip);
-                        break;
                     case 'gain':
                         this.openClipGainPopup(trackId, clip.id);
                         break;
@@ -418,6 +412,13 @@ class TrackManager {
         if (clipElement) {
             clipElement.classList.add('selected');
             this.selectedClip = { trackId, clipId };
+            
+            // キーフレームパネルを表示
+            const track = this.getTrack(trackId);
+            const clip = track?.clips.find(c => c.id === clipId);
+            if (clip && window.timelineKeyframeUI) {
+                window.timelineKeyframeUI.showKeyframePanel(clip, trackId);
+            }
         }
     }
     

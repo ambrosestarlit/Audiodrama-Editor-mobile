@@ -24,7 +24,7 @@ class VoiceDramaDAW {
                 'trackManager',
                 'historyManager',
                 'keyframeManager',
-                'keyframeEditorUI'
+                'timelineKeyframeUI'
             ];
             
             const missingManagers = requiredManagers.filter(manager => !window[manager]);
@@ -62,11 +62,11 @@ class VoiceDramaDAW {
             }
             
             try {
-                console.log('Initializing keyframeEditorUI...');
-                window.keyframeEditorUI.init();
-                console.log('✓ keyframeEditorUI initialized');
+                console.log('Initializing timelineKeyframeUI...');
+                window.timelineKeyframeUI.init();
+                console.log('✓ timelineKeyframeUI initialized');
             } catch (error) {
-                console.error('✗ keyframeEditorUI initialization failed:', error);
+                console.error('✗ timelineKeyframeUI initialization failed:', error);
                 throw error;
             }
             
