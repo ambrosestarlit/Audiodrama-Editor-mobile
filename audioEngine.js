@@ -745,6 +745,8 @@ class AudioEngine {
         
         const keyframes = window.keyframeManager.getParameterKeyframes(clip.id, parameter);
         
+        console.log(`🐻 [${parameter}] キーフレーム数: ${keyframes.length}`, keyframes);
+        
         if (keyframes.length === 0) {
             // キーフレームがない場合はデフォルト値を設定
             audioParam.setValueAtTime(defaultValue, contextStartTime);
@@ -754,6 +756,7 @@ class AudioEngine {
         // 開始前の値を設定（最初のキーフレームより前の時間）
         if (keyframes[0].time > 0) {
             audioParam.setValueAtTime(defaultValue, contextStartTime);
+            console.log(`🐻 [${parameter}] 開始値: ${defaultValue} @ ${contextStartTime}`);
         }
         
         // キーフレームの値をAudioParamに設定
@@ -761,6 +764,8 @@ class AudioEngine {
             // キーフレーム時間はクリップ内の相対時間(0から始まる)
             // AudioContextの絶対時間に変換
             const time = contextStartTime + kf.time;
+            
+            console.log(`🐻 [${parameter}] KF${index}: value=${kf.value}, time=${kf.time}s, absolute=${time}s`);
             
             if (index === 0) {
                 // 最初のキーフレーム

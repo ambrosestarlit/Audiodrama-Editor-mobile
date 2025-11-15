@@ -91,7 +91,7 @@ class TimelineKeyframeUI {
                 this.selectedClip.id, 
                 elementId, 
                 relativeTime, 
-                0.1
+                0.01  // 0.01秒以内のみ上書き
             );
             
             if (nearest) {
@@ -271,7 +271,7 @@ class TimelineKeyframeUI {
             this.selectedClip.id, 
             parameter, 
             relativeTime, 
-            0.1
+            0.01  // 0.01秒以内のみ上書き
         );
         
         if (nearest) {

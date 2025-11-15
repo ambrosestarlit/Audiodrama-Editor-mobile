@@ -939,6 +939,9 @@ class VoiceDramaDAW {
                     this.updateTimeDisplay();
                     this.updatePlayhead();
                     
+                    // キーフレームに合わせてスライダーを更新
+                    this.updateSlidersFromKeyframes();
+                    
                     // 終了チェック
                     if (window.audioEngine.currentTime >= window.audioEngine.duration) {
                         this.stop();
@@ -1096,6 +1099,97 @@ class VoiceDramaDAW {
         const pixelsPerSecond = availableWidth / duration;
         
         window.trackManager.setZoom(Math.max(25, Math.min(400, pixelsPerSecond)));
+    }
+    
+    // キーフレームに合わせてスライダーを更新
+    updateSlidersFromKeyframes() {
+        if (!window.timelineKeyframeUI || !window.timelineKeyframeUI.selectedClip) return;
+        
+        const clip = window.timelineKeyframeUI.selectedClip;
+        const trackId = window.timelineKeyframeUI.selectedTrackId;
+        
+        if (!clip || !trackId) return;
+        
+        const currentTime = window.audioEngine.currentTime;
+        const relativeTime = currentTime - clip.startTime;
+        
+        // クリップの範囲外ならスキップ
+        if (relativeTime < 0 || relativeTime > clip.duration) return;
+        
+        const trackElement = document.querySelector(`[data-track-id="${trackId}"]`);
+        if (!trackElement) return;
+        
+        // Volume
+        const volumeValue = this.getKeyframeValueAtTime(clip.id, 'volume', relativeTime);
+        if (volumeValue !== null) {
+            const volumeSlider = trackElement.querySelector('.volume-slider');
+            const volumeValueDisplay = trackElement.querySelector('.volume-value');
+            if (volumeSlider) {
+                volumeSlider.value = volumeValue;
+                if (volumeValueDisplay) {
+                    volumeValueDisplay.textContent = Math.round(volumeValue);
+                }
+            }
+        }
+        
+        // Pan
+        const panValue = this.getKeyframeValueAtTime(clip.id, 'pan', relativeTime);
+        if (panValue !== null) {
+            const panSlider = trackElement.querySelector('.pan-slider');
+            const panValueDisplay = trackElement.querySelector('.pan-value');
+            if (panSlider) {
+                panSlider.value = panValue;
+                if (panValueDisplay) {
+                    const panText = panValue === 0 ? 'C' : (panValue > 0 ? `R${Math.round(panValue)}` : `L${Math.round(Math.abs(panValue))}`);
+                    panValueDisplay.textContent = panText;
+                }
+            }
+        }
+        
+        // Gain
+        const gainValue = this.getKeyframeValueAtTime(clip.id, 'gain', relativeTime);
+        if (gainValue !== null) {
+            const gainSlider = document.getElementById('clipGainSlider');
+            const gainValueDisplay = document.getElementById('clipGainValue');
+            if (gainSlider) {
+                gainSlider.value = gainValue;
+                if (gainValueDisplay) {
+                    gainValueDisplay.textContent = `${gainValue >= 0 ? '+' : ''}${gainValue.toFixed(1)} dB`;
+                }
+            }
+        }
+    }
+    
+    // 指定時間でのキーフレーム値を取得（補間あり）
+    getKeyframeValueAtTime(clipId, parameter, time) {
+        if (!window.keyframeManager) return null;
+        
+        const keyframes = window.keyframeManager.getParameterKeyframes(clipId, parameter);
+        if (keyframes.length === 0) return null;
+        
+        // 最初のキーフレームより前
+        if (time < keyframes[0].time) {
+            return keyframes[0].value;
+        }
+        
+        // 最後のキーフレームより後
+        if (time >= keyframes[keyframes.length - 1].time) {
+            return keyframes[keyframes.length - 1].value;
+        }
+        
+        // キーフレーム間を補間
+        for (let i = 0; i < keyframes.length - 1; i++) {
+            const kf1 = keyframes[i];
+            const kf2 = keyframes[i + 1];
+            
+            if (time >= kf1.time && time <= kf2.time) {
+                // 線形補間
+                const ratio = (time - kf1.time) / (kf2.time - kf1.time);
+                return kf1.value + (kf2.value - kf1.value) * ratio;
+            }
+        }
+        
+        return null;
     }
 }
 
