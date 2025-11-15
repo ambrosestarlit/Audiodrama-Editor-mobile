@@ -768,19 +768,31 @@ class AudioEngine {
             return;
         }
         
+        // CRITICAL: Web Audio APIでは過去の時間に値を設定できない
+        // すべての時間が audioContext.currentTime より後である必要がある
+        const now = this.audioContext.currentTime;
+        const minTime = now + 0.001; // 1ms後以降
+        
         // 開始前の値を設定（最初のキーフレームより前の時間）
         if (keyframes[0].time > 0) {
-            audioParam.setValueAtTime(defaultValue, contextStartTime);
-            console.log(`🐻 [${parameter}] 開始値: ${defaultValue} @ ${contextStartTime}`);
+            const startTime = Math.max(minTime, contextStartTime);
+            audioParam.setValueAtTime(defaultValue, startTime);
+            console.log(`🐻 [${parameter}] 開始値: ${defaultValue} @ ${startTime} (now=${now})`);
         }
         
         // キーフレームの値をAudioParamに設定
         keyframes.forEach((kf, index) => {
             // キーフレーム時間はクリップ内の相対時間(0から始まる)
             // AudioContextの絶対時間に変換
-            const time = contextStartTime + kf.time;
+            let time = contextStartTime + kf.time;
             
-            console.log(`🐻 [${parameter}] KF${index}: value=${kf.value}, time=${kf.time}s, absolute=${time}s`);
+            // CRITICAL: 時間が過去の場合は現在時刻に調整
+            if (time < minTime) {
+                console.log(`🐻 [${parameter}] ⚠️ KF${index} 時間が過去! ${time} → ${minTime}`);
+                time = minTime;
+            }
+            
+            console.log(`🐻 [${parameter}] KF${index}: value=${kf.value}, time=${kf.time}s, absolute=${time}s (now=${now})`);
             
             if (index === 0) {
                 // 最初のキーフレーム
